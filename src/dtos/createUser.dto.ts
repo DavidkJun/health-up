@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString, Max, Min} from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class CreateUserDto{
   @IsString()
@@ -10,15 +10,19 @@ export class CreateUserDto{
   @IsNotEmpty({message: "Email is required"})
   email: string;
 
+  @IsString()
+  @IsNotEmpty({message: "Password is required"})
+  password: string;
+
   @IsNumber()
   @Min(1,{message: "Age must be greater then 0"})
   @Max(120, {message: "Age must be smaller that 120"})
-  @IsNotEmpty()
+  @IsOptional()
   age: number;
 
   @IsNumber()
   @Min(1,{message: "Weight must be greater then 0"})
   @Max(300, {message: "Weight must be smaller that 300"})
-  @IsNotEmpty()
+  @IsOptional()
   weight: number;
 }
