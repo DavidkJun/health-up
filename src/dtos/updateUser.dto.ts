@@ -10,6 +10,10 @@ export class UpdateUserDto {
   @IsOptional()
   email: string;
 
+  @IsString()
+  @IsOptional()
+  password: string;
+
   @IsNumber()
   @Min(1,{message: "Age must be greater then 0"})
   @Max(120, {message: "Age must be smaller that 120"})
