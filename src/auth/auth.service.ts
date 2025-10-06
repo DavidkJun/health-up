@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { comparePasswords } from '../utils/bcrypt';
 import { JwtService } from '@nestjs/jwt';
@@ -16,11 +16,10 @@ export class AuthService {
         console.log('User Validation Success');
         return this.jwtService.sign(user);
       } else {
-        console.log('Passwords dont match');
-        return null;
+        //console.log('Passwords dont match');
+        throw new HttpException("Passwords do not match", 401)
       }
     }
-    console.log('User Validation Failed')
-    return null;
+    throw new HttpException("Validation Failed", 401)
   }
 }
