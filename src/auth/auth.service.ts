@@ -7,18 +7,18 @@ import { JwtService } from '@nestjs/jwt';
 export class AuthService {
   constructor(private userService: UsersService, private jwtService: JwtService) {}
 
-  async validateUser({ email, password }) {
-    console.log('Entered validator')
-    const user = await this.userService.getUserByEmail(email)
-    if(user) {
-      const matched = comparePasswords(password, user.password);
-      if(matched) {
-        console.log('User Validation Success');
-        return this.jwtService.sign(user);
-      } else {
-        throw new HttpException("Passwords do not match", 401)
-      }
+  async validateUser(email: string, pass: string): Promise<any> {
+    const user = await this.userService.getUserByEmail(email);
+    if(user && comparePasswords(pass, user.password)) {
+      const {password, ...result} = user;
+      return result;
     }
-    throw new HttpException("Validation Failed", 401)
+    return null;
+  }
+  async login(user: any) {
+    const payload = { username: user.email, sub: user.id };
+    return {
+      access_token: this.jwtService.sign(payload)
+    }
   }
 }
