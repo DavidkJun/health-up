@@ -15,8 +15,9 @@ datasource db {
 
 model User {
   id Int @default(autoincrement()) @id
-  name String
-  email String @unique
-  age Int
-  weight Int
+  name String @db.VarChar(255)
+  email String @unique @db.VarChar(255)
+  password String @db.VarChar(255)
+  age Int? @db.SmallInt
+  weight Float?
 }
