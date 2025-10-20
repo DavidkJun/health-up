@@ -20,4 +20,24 @@ model User {
   password String @db.VarChar(255)
   age Int? @db.SmallInt
   weight Float?
+  workouts Workout[]
+}
+
+model Workout {
+  id Int @id @default(autoincrement())
+  name String
+  date DateTime
+  userId Int
+  user User @relation(fields: [userId], references: [id])
+  exercises Exercise[]
+}
+
+model Exercise {
+  id Int @id @default(autoincrement())
+  name String
+  weight Float
+  reps Int
+  sets Int
+  workoutId Int
+  workout Workout @relation(fields: [workoutId],references: [id])
 }
