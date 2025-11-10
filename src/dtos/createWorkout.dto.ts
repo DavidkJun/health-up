@@ -1,5 +1,5 @@
 import {
-  IsArray,
+  IsArray, IsDateString,
   IsNotEmpty,
   IsString,
   ValidateNested,
@@ -11,6 +11,10 @@ export class CreateWorkoutDto {
   @IsString()
   @IsNotEmpty({ message: "Name is required"})
   name: string;
+
+  @IsDateString()
+  @IsNotEmpty({message: "Date is required"})
+  date: string;
 
   @IsArray()
   @ValidateNested({ each: true })
