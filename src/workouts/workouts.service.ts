@@ -36,7 +36,13 @@ export class WorkoutsService {
     const findWorkout = await this.getWorkoutById(id, userId);
     if(!findWorkout) throw new HttpException('Workout Not Found',404);
 
-    return this.prisma.workout.update({ where: {id: id}, data} );
+    return this.prisma.workout.update({
+      where: {id: id},
+      data,
+      include: {
+        exercises: true
+      }
+    });
   }
 
   async deleteWorkout(id: number, userId: number) {
