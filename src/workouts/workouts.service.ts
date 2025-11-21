@@ -8,7 +8,12 @@ export class WorkoutsService {
   }
 
   createWorkout(data: Prisma.WorkoutCreateInput) {
-    return this.prisma.workout.create({ data });
+    return this.prisma.workout.create({
+      data,
+      include: {
+        exercises: true
+      }
+    });
   }
 
   getWorkouts(userId: number) {
