@@ -14,7 +14,6 @@ The goal is to make training more organized, convenient, and motivating.
 ---
 
 ## 🛠️ Tech Stack
-- **Frontend:** React
 - **Backend:** NestJS (Node.js)
 - **Database:** PostgreSQL 
 - **API:** REST  
