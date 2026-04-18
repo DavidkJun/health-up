@@ -10,7 +10,14 @@ import { WorkoutsModule } from './workouts/workouts.module';
 import { StatsModule } from './stats/stats.module';
 
 @Module({
-  imports: [UsersModule, PrismaModule, AuthModule, ConfigModule.forRoot(), WorkoutsModule, StatsModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    UsersModule,
+    PrismaModule,
+    AuthModule,
+    WorkoutsModule,
+    StatsModule,
+  ],
   controllers: [AppController],
   providers: [AppService, LocalStrategy],
 })
