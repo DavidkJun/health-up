@@ -1,0 +1,84 @@
+# -----------------------------------------------------------------------------
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   HOST_IP          — Public IP or DNS name of the Azure VM
+#   SSH_USERNAME     — SSH login user on the VM (e.g. azureuser)
+#   SSH_KEY          — Private SSH key (PEM), paste full multiline key
+#   ENV_FILE_CONTENT — Full body of the runtime `.env` for ~/main-env
+#
+# Trigger: Actions → "Deploy (main)" → Run workflow (use branch `main`).
+# -----------------------------------------------------------------------------
+name: Deploy (main)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    env:
+      ENV_FILE_CONTENT: ${{ secrets.ENV_FILE_CONTENT }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set GHCR image repository (lowercase)
+        run: echo "IMAGE_REPOSITORY=$(echo ${{ github.repository }} | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ env.IMAGE_REPOSITORY }}:${{ github.ref_name }}-${{ github.sha }}
+
+      - name: Ensure remote deploy directory exists
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: mkdir -p ~/main-env
+
+      - name: Copy docker-compose.yml to VM
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          source: docker-compose.yml
+          target: ~/main-env
+
+      - name: Pull image and restart stack on VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          envs: ENV_FILE_CONTENT
+          script: |
+            mkdir -p ~/main-env
+            cd ~/main-env
+            printf '%s\n' "$ENV_FILE_CONTENT" > .env
+            echo "APP_IMAGE=ghcr.io/${{ env.IMAGE_REPOSITORY }}:${{ github.ref_name }}-${{ github.sha }}" >> .env
+            
+            # Встановлюємо інші порти для MAIN середовища
+            echo "APP_PORT=4000" >> .env
+            echo "DB_PORT=5433" >> .env
+            
+            echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+            docker compose pull
+            docker compose up -d
+            docker logout ghcr.io
