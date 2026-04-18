@@ -1,16 +1,21 @@
-import { Injectable} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import * as process from 'node:process';
 import { UsersService } from '../users/users.service';
-import {UnauthorizedException } from '@nestjs/common';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private userService: UsersService) {
-    const secret = process.env.SECRET;
-    if(!secret){
-      throw new Error('FATAL ERROR: JWT secret is not defined in environment variables')
+  constructor(
+    private userService: UsersService,
+    private config: ConfigService,
+  ) {
+    const secret =
+      config.get<string>('JWT_SECRET') ?? config.get<string>('SECRET');
+    if (!secret) {
+      throw new Error(
+        'FATAL ERROR: JWT secret is not defined (set JWT_SECRET or SECRET in environment)',
+      );
     }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
